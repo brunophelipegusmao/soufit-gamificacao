@@ -56,3 +56,30 @@ export type RankingEntry = {
   total_actions: number;
   position: number;
 };
+
+export type CampaignVenue = {
+  campaign_id: string;
+  venue_id: string;
+};
+
+export type QrCode = {
+  id: string;
+  campaign_id: string;
+  venue_id: string;
+  mission_id: string;
+  token: string;
+  label: string;
+  created_at: string;
+};
+
+export type Superadmin = {
+  user_id: string;
+  created_at: string;
+};
+
+export type CampaignAdmin = {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  created_at: string;
+};
