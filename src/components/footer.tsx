@@ -65,7 +65,7 @@ function FooterLinkList({
 export function Footer() {
   return (
     <footer className="w-full bg-background border-t border-white/10 pt-12 pb-8 md:pt-16">
-      <div className="max-w-300 mx-auto px-5 md:px-8">
+      <div className="px-5 md:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 pb-12">
           <div>
             <Link href="/" className="flex items-center gap-2.5 mb-4">
