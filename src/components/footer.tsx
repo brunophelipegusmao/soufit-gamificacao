@@ -70,7 +70,7 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2.5 mb-4">
               <Image
-                src="./icon.svg"
+                src="./logo.svg"
                 alt="Ícone verde com raio preto"
                 width={65}
                 height={65}

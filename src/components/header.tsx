@@ -44,7 +44,7 @@ export function Header() {
       <div className="flex items-center">
         <span className="">
           <Image
-            src="./icon.svg"
+            src="./logo.svg"
             alt="Ícone verde com raio preto"
             width={65}
             height={65}
