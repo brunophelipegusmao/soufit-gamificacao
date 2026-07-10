@@ -29,6 +29,7 @@ GATE-2 custo-zero:
   action: verificar se tem free tier suficiente para escala de campanha (centenas, não milhões)
   banned: Firebase | AWS sem free tier | serviços pagos sem alternativa gratuita equivalente
   exception: serviço pago só se não existir alternativa gratuita viável
+  exception: Upstash Redis liberado para cache de queries do banco — free tier (10k comandos/dia) cobre a escala do projeto
 
 GATE-3 simplicidade:
   trigger: decisão de arquitetura
@@ -47,15 +48,23 @@ GATE-4 validação-qr:
 <rules>
 
 STACK:
-  frontend: Next.js 14 App Router
+  frontend: Next.js 16 App Router
+  ui-runtime: React 19
+  linguagem: TypeScript — sem exceção, todo código em .ts/.tsx
   banco: Supabase (Postgres + Auth + Realtime + Storage)
+  cache: Upstash Redis (free tier) — cache de queries do banco, não substitui Supabase como fonte da verdade
+  ui-kit: shadcn/ui + Tailwind CSS v4
+  validação: Zod (schemas de formulário e de server actions)
+  forms: React Hook Form + Zod resolver
+  data-fetching-client: React Query (Server Actions chamadas a partir de Client Components)
+  input-mascarado: react-number-format — usar sempre que houver input com máscara
   deploy-frontend: Vercel (free tier)
-  deploy-api: Next.js API Routes (sem servidor separado)
+  deploy-api: Next.js API Routes + Server Actions (sem servidor separado)
   package-manager: pnpm — não usar npm ou yarn
   qr-code: lib qrcode
   email: Resend (100/dia grátis)
   whatsapp: Z-API ou Evolution API
-  banned: NestJS | Redis | S3 separado | Firebase | banco separado do Supabase
+  banned: NestJS | S3 separado | Firebase | banco separado do Supabase
 
 ROTEAMENTO:
   core: tudo escopado por /[campaign_slug]
@@ -105,6 +114,43 @@ CAMPANHA:
 
 </rules>
 
+<engenharia label="convenções de código | aplica a todo código novo">
+
+PRINCÍPIOS:
+  persona: engenheiro sênior — TypeScript, React 19, Next.js 16 App Router, Supabase, shadcn/ui, Zod, Tailwind CSS v4
+  código: limpo, conciso, manutenível — SOLID + Clean Code
+  nomes: descritivos (isLoading, hasError) — nunca abreviações obscuras
+  arquivos-pastas: kebab-case
+  linguagem: TypeScript em 100% do código
+  dry: evitar duplicação — extrair função/componente reutilizável quando repetir
+  comentários: não escrever comentários desnecessários no código
+
+DATA-FETCHING (React Query + Server Actions):
+  regra: Client Components chamam Server Actions através de React Query — nunca fetch direto sem hook
+  padrão: toda query/mutation do React Query vive em um hook customizado dedicado
+  local-query: src/hooks/queries/
+  local-mutation: src/hooks/mutations/
+  policy: cada hook exporta a função de query/mutation key junto com o hook — nunca inline a key no componente
+
+FORMS:
+  validação: Zod schema sempre — nunca validação manual de formulário
+  form-lib: React Hook Form + zodResolver
+  wrapper: usar o componente Field (src/components/ui/field.tsx) como wrapper padrão de campo — criar se ainda não existir
+  policy: nenhum form novo sem esse padrão (Zod + RHF + Field)
+
+INPUT-MASCARADO:
+  lib: react-number-format
+  uso: telefone, CPF, valores monetários, qualquer input com máscara
+
+SERVER ACTIONS:
+  local: src/actions/
+  estrutura: cada action em sua própria pasta com index.ts (lógica) + schema.ts (Zod schema)
+  naming: pasta nomeada pela ação (ex: src/actions/credit-xp/, src/actions/approve-mission-proof/)
+
+nota: referências de arquivo (cart-item.tsx, user-cart.ts, sign-in-form.tsx etc.) de outro projeto foram descartadas — este projeto ainda não tem esses componentes; os padrões acima valem a partir do primeiro arquivo criado em cada categoria.
+
+</engenharia>
+
 <rhythm>
 
 nova-feature:
@@ -146,7 +192,7 @@ resend-key: RESEND_API_KEY (variável de ambiente — server only)
 
 <decisions>
 nestjs: descartado — over-engineering para o escopo real
-redis: descartado — Supabase Realtime resolve ranking ao vivo
+redis: adotado via Upstash (free tier) — cache de queries do banco | ranking ao vivo continua via Supabase Realtime, Redis não substitui isso
 s3: descartado — Supabase Storage é suficiente
 validação-manual: descartada como mecanismo principal — gargalo operacional
 auto-declarado: descartado — risco de trapaça

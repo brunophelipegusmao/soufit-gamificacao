@@ -1,53 +1,57 @@
 "use client";
 
-import { useActionState } from "react";
-import { login } from "./actions";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Field } from "@/components/ui/field";
+import { useLoginMutation } from "@/hooks/mutations/use-login-mutation";
+import { loginSchema, type LoginInput } from "@/actions/login/schema";
 
 export function LoginForm() {
-  const [state, action, pending] = useActionState(login, undefined);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
+
+  const { mutate, isPending, error } = useLoginMutation();
 
   return (
-    <form action={action} className="flex w-full max-w-sm flex-col gap-4">
+    <form
+      onSubmit={handleSubmit((data) => mutate(data))}
+      className="flex w-full max-w-sm flex-col gap-4"
+    >
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         Painel administrativo
       </h1>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
-        </label>
+      <Field label="Email" htmlFor="email" error={errors.email?.message}>
         <input
           id="email"
-          name="email"
           type="email"
           autoComplete="email"
-          required
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          {...register("email")}
         />
-      </div>
+      </Field>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm font-medium">
-          Senha
-        </label>
+      <Field label="Senha" htmlFor="password" error={errors.password?.message}>
         <input
           id="password"
-          name="password"
           type="password"
           autoComplete="current-password"
-          required
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          {...register("password")}
         />
-      </div>
+      </Field>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {error && <p className="text-sm text-red-600">{error.message}</p>}
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={isPending}
         className="rounded-full bg-zinc-900 px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
       >
-        {pending ? "Entrando..." : "Entrar"}
+        {isPending ? "Entrando..." : "Entrar"}
       </button>
     </form>
   );

@@ -1,17 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase-browser";
+import { Field } from "@/components/ui/field";
+import { useUpdatePasswordMutation } from "@/hooks/mutations/use-update-password-mutation";
+
+const setPasswordSchema = z.object({
+  password: z.string().min(8, "A senha precisa de pelo menos 8 caracteres."),
+});
+
+type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
 export function SetPasswordForm() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [ready, setReady] = useState(false);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SetPasswordInput>({ resolver: zodResolver(setPasswordSchema) });
+
+  const { mutate, isPending, error } = useUpdatePasswordMutation();
 
   useEffect(() => {
     // O client (@supabase/ssr) é fixo em flowType "pkce", mas o link de
@@ -43,64 +58,47 @@ export function SetPasswordForm() {
       } = await supabase.auth.getSession();
 
       setReady(!!session);
-      if (!session) setError("Link inválido ou expirado.");
+      if (!session) setSessionError("Link inválido ou expirado.");
     }
 
     establishSession();
   }, [supabase]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-
-    const { error } = await supabase.auth.updateUser({ password });
-
-    setSubmitting(false);
-
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.push("/admin");
-  }
-
   if (!ready) {
     return (
       <p className="text-sm text-zinc-500">
-        {error ?? "Verificando link..."}
+        {sessionError ?? "Verificando link..."}
       </p>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
+    <form
+      onSubmit={handleSubmit((data) => mutate(data.password))}
+      className="flex w-full max-w-sm flex-col gap-4"
+    >
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         Defina sua senha
       </h1>
 
-      <label className="flex flex-col gap-1 text-sm font-medium">
-        Senha
+      <Field label="Senha" htmlFor="password" error={errors.password?.message}>
         <input
+          id="password"
           type="password"
-          required
-          minLength={8}
           autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
           className="rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          {...register("password")}
         />
-      </label>
+      </Field>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error.message}</p>}
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={isPending}
         className="rounded-full bg-zinc-900 px-4 py-2 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
       >
-        {submitting ? "Salvando..." : "Salvar e entrar"}
+        {isPending ? "Salvando..." : "Salvar e entrar"}
       </button>
     </form>
   );

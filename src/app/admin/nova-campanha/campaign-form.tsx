@@ -1,22 +1,17 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useEffect, useState } from "react";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { slugify } from "@/lib/slug";
-import { createCampaign } from "./actions";
+import { Field } from "@/components/ui/field";
+import { useCreateCampaignMutation } from "@/hooks/mutations/use-create-campaign-mutation";
+import {
+  createCampaignSchema,
+  type CreateCampaignInput,
+} from "@/actions/create-campaign/schema";
 
-type Venue = { name: string; city: string; state: string };
-
-type Mission = {
-  title: string;
-  description: string;
-  xp_value: number;
-  validation_type: "qr" | "manual" | "auto";
-  repeatable: boolean;
-  max_per_day: number;
-  active: boolean;
-};
-
-const DEFAULT_MISSIONS: Mission[] = [
+const DEFAULT_MISSIONS: CreateCampaignInput["missions"] = [
   { title: "Cadastro", description: "", xp_value: 100, validation_type: "auto", repeatable: false, max_per_day: 1, active: true },
   { title: "Primeiro login", description: "", xp_value: 50, validation_type: "auto", repeatable: false, max_per_day: 1, active: true },
   { title: "Check-in", description: "", xp_value: 20, validation_type: "qr", repeatable: true, max_per_day: 1, active: true },
@@ -33,99 +28,107 @@ const inputClass =
   "rounded-md border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900";
 
 export function CampaignForm() {
-  const [state, action, pending] = useActionState(createCampaign, undefined);
-
-  const [title, setTitle] = useState("");
-  const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
 
-  const [venues, setVenues] = useState<Venue[]>([
-    { name: "", city: "", state: "" },
-  ]);
-  const [missions, setMissions] = useState<Mission[]>(DEFAULT_MISSIONS);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors },
+  } = useForm<CreateCampaignInput>({
+    resolver: zodResolver(createCampaignSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      brand_name: "",
+      logo_url: "",
+      primary_color: "#00c853",
+      starts_at: "",
+      ends_at: "",
+      active: true,
+      admin_email: "",
+      venues: [{ name: "", city: "", state: "" }],
+      missions: DEFAULT_MISSIONS,
+    },
+  });
 
-  function updateTitle(value: string) {
-    setTitle(value);
-    if (!slugTouched) setSlug(slugify(value));
-  }
+  const {
+    fields: venueFields,
+    append: appendVenue,
+    remove: removeVenue,
+  } = useFieldArray({ control, name: "venues" });
 
-  function updateVenue(index: number, patch: Partial<Venue>) {
-    setVenues((prev) =>
-      prev.map((v, i) => (i === index ? { ...v, ...patch } : v)),
-    );
-  }
+  const {
+    fields: missionFields,
+    append: appendMission,
+    remove: removeMission,
+  } = useFieldArray({ control, name: "missions" });
 
-  function updateMission(index: number, patch: Partial<Mission>) {
-    setMissions((prev) =>
-      prev.map((m, i) => (i === index ? { ...m, ...patch } : m)),
-    );
-  }
+  const { mutate, isPending, error } = useCreateCampaignMutation();
+
+  const title = watch("title");
+  const slugField = register("slug");
+
+  useEffect(() => {
+    if (!slugTouched) setValue("slug", slugify(title || ""));
+  }, [title, slugTouched, setValue]);
 
   return (
-    <form action={action} className="flex flex-col gap-10">
+    <form
+      onSubmit={handleSubmit((data) => mutate(data))}
+      className="flex flex-col gap-10"
+    >
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Campanha</h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Título
-            <input
-              name="title"
-              required
-              value={title}
-              onChange={(e) => updateTitle(e.target.value)}
-              className={inputClass}
-            />
-          </label>
+          <Field label="Título" htmlFor="title" error={errors.title?.message}>
+            <input id="title" className={inputClass} {...register("title")} />
+          </Field>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Slug
+          <Field label="Slug" htmlFor="slug" error={errors.slug?.message}>
             <input
-              name="slug"
-              required
-              value={slug}
+              id="slug"
+              className={inputClass}
+              {...slugField}
               onChange={(e) => {
                 setSlugTouched(true);
-                setSlug(e.target.value);
+                slugField.onChange(e);
               }}
-              className={inputClass}
             />
-          </label>
+          </Field>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Marca
-            <input name="brand_name" required className={inputClass} />
-          </label>
+          <Field label="Marca" htmlFor="brand_name" error={errors.brand_name?.message}>
+            <input id="brand_name" className={inputClass} {...register("brand_name")} />
+          </Field>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Logo (URL)
-            <input name="logo_url" type="url" className={inputClass} />
-          </label>
+          <Field label="Logo (URL)" htmlFor="logo_url" error={errors.logo_url?.message}>
+            <input id="logo_url" type="url" className={inputClass} {...register("logo_url")} />
+          </Field>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Cor principal
+          <Field label="Cor principal" htmlFor="primary_color">
             <input
-              name="primary_color"
+              id="primary_color"
               type="color"
-              defaultValue="#00c853"
               className={`${inputClass} h-11 p-1`}
+              {...register("primary_color")}
             />
-          </label>
+          </Field>
 
           <label className="flex items-center gap-2 text-sm font-medium sm:mt-6">
-            <input name="active" type="checkbox" defaultChecked />
+            <input type="checkbox" {...register("active")} />
             Ativa
           </label>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Início
-            <input name="starts_at" type="date" required className={inputClass} />
-          </label>
+          <Field label="Início" htmlFor="starts_at" error={errors.starts_at?.message}>
+            <input id="starts_at" type="date" className={inputClass} {...register("starts_at")} />
+          </Field>
 
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            Fim
-            <input name="ends_at" type="date" required className={inputClass} />
-          </label>
+          <Field label="Fim" htmlFor="ends_at" error={errors.ends_at?.message}>
+            <input id="ends_at" type="date" className={inputClass} {...register("ends_at")} />
+          </Field>
         </div>
       </section>
 
@@ -134,48 +137,57 @@ export function CampaignForm() {
           <h2 className="text-lg font-semibold">Academias parceiras</h2>
           <button
             type="button"
-            onClick={() =>
-              setVenues((prev) => [...prev, { name: "", city: "", state: "" }])
-            }
+            onClick={() => appendVenue({ name: "", city: "", state: "" })}
             className="text-sm underline"
           >
             + adicionar academia
           </button>
         </div>
+        {errors.venues?.message && (
+          <p className="text-sm text-red-600">{errors.venues.message}</p>
+        )}
 
-        {venues.map((venue, index) => (
-          <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_80px_auto]">
+        {venueFields.map((field, index) => (
+          <div
+            key={field.id}
+            className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_80px_auto]"
+          >
             <input
               placeholder="Nome"
-              value={venue.name}
-              onChange={(e) => updateVenue(index, { name: e.target.value })}
               className={inputClass}
+              {...register(`venues.${index}.name`)}
             />
             <input
               placeholder="Cidade"
-              value={venue.city}
-              onChange={(e) => updateVenue(index, { city: e.target.value })}
               className={inputClass}
+              {...register(`venues.${index}.city`)}
             />
-            <input
-              placeholder="UF"
-              maxLength={2}
-              value={venue.state}
-              onChange={(e) =>
-                updateVenue(index, { state: e.target.value.toUpperCase() })
-              }
-              className={inputClass}
+            <Controller
+              control={control}
+              name={`venues.${index}.state`}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  placeholder="UF"
+                  maxLength={2}
+                  className={inputClass}
+                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                />
+              )}
             />
             <button
               type="button"
-              disabled={venues.length === 1}
-              onClick={() =>
-                setVenues((prev) => prev.filter((_, i) => i !== index))
-              }
+              disabled={venueFields.length === 1}
+              onClick={() => removeVenue(index)}
               className="text-sm text-red-600 disabled:opacity-30"
             >
               remover
             </button>
+            {errors.venues?.[index]?.name?.message && (
+              <p className="col-span-full text-sm text-red-600">
+                {errors.venues[index]?.name?.message}
+              </p>
+            )}
           </div>
         ))}
       </section>
@@ -186,54 +198,45 @@ export function CampaignForm() {
           <button
             type="button"
             onClick={() =>
-              setMissions((prev) => [
-                ...prev,
-                {
-                  title: "",
-                  description: "",
-                  xp_value: 0,
-                  validation_type: "manual",
-                  repeatable: false,
-                  max_per_day: 1,
-                  active: true,
-                },
-              ])
+              appendMission({
+                title: "",
+                description: "",
+                xp_value: 0,
+                validation_type: "manual",
+                repeatable: false,
+                max_per_day: 1,
+                active: true,
+              })
             }
             className="text-sm underline"
           >
             + adicionar missão
           </button>
         </div>
+        {errors.missions?.message && (
+          <p className="text-sm text-red-600">{errors.missions.message}</p>
+        )}
 
         <div className="flex flex-col gap-3">
-          {missions.map((mission, index) => (
+          {missionFields.map((field, index) => (
             <div
-              key={index}
+              key={field.id}
               className="grid grid-cols-2 gap-2 rounded-md border border-zinc-200 p-3 dark:border-zinc-800 sm:grid-cols-6"
             >
               <input
                 placeholder="Título"
-                value={mission.title}
-                onChange={(e) => updateMission(index, { title: e.target.value })}
                 className={`${inputClass} col-span-2`}
+                {...register(`missions.${index}.title`)}
               />
               <input
                 type="number"
                 placeholder="XP"
-                value={mission.xp_value}
-                onChange={(e) =>
-                  updateMission(index, { xp_value: Number(e.target.value) })
-                }
                 className={inputClass}
+                {...register(`missions.${index}.xp_value`, { valueAsNumber: true })}
               />
               <select
-                value={mission.validation_type}
-                onChange={(e) =>
-                  updateMission(index, {
-                    validation_type: e.target.value as Mission["validation_type"],
-                  })
-                }
                 className={inputClass}
+                {...register(`missions.${index}.validation_type`)}
               >
                 <option value="qr">qr</option>
                 <option value="manual">manual</option>
@@ -242,33 +245,27 @@ export function CampaignForm() {
               <input
                 type="number"
                 placeholder="Máx/dia"
-                value={mission.max_per_day}
-                onChange={(e) =>
-                  updateMission(index, { max_per_day: Number(e.target.value) })
-                }
                 className={inputClass}
+                {...register(`missions.${index}.max_per_day`, { valueAsNumber: true })}
               />
               <div className="flex items-center gap-3 text-sm">
                 <label className="flex items-center gap-1">
-                  <input
-                    type="checkbox"
-                    checked={mission.repeatable}
-                    onChange={(e) =>
-                      updateMission(index, { repeatable: e.target.checked })
-                    }
-                  />
+                  <input type="checkbox" {...register(`missions.${index}.repeatable`)} />
                   repetível
                 </label>
                 <button
                   type="button"
-                  onClick={() =>
-                    setMissions((prev) => prev.filter((_, i) => i !== index))
-                  }
+                  onClick={() => removeMission(index)}
                   className="ml-auto text-red-600"
                 >
                   remover
                 </button>
               </div>
+              {errors.missions?.[index]?.title?.message && (
+                <p className="col-span-full text-sm text-red-600">
+                  {errors.missions[index]?.title?.message}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -276,32 +273,33 @@ export function CampaignForm() {
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Admin da campanha (opcional)</h2>
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Email
+        <Field
+          label="Email"
+          htmlFor="admin_email"
+          error={errors.admin_email?.message}
+        >
           <input
-            name="admin_email"
+            id="admin_email"
             type="email"
             placeholder="admin@academia.com"
             className={inputClass}
+            {...register("admin_email")}
           />
-        </label>
+        </Field>
         <p className="text-sm text-zinc-500">
           Se preenchido, a pessoa recebe um convite por email pra definir a
           própria senha e acessar só esta campanha.
         </p>
       </section>
 
-      <input type="hidden" name="venues" value={JSON.stringify(venues)} />
-      <input type="hidden" name="missions" value={JSON.stringify(missions)} />
-
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {error && <p className="text-sm text-red-600">{error.message}</p>}
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={isPending}
         className="self-start rounded-full bg-zinc-900 px-6 py-3 font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
       >
-        {pending ? "Criando..." : "Criar campanha"}
+        {isPending ? "Criando..." : "Criar campanha"}
       </button>
     </form>
   );

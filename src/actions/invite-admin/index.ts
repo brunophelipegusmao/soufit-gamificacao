@@ -3,29 +3,21 @@
 import { revalidatePath } from "next/cache";
 import { assertSuperadmin } from "@/lib/admin";
 import { inviteCampaignAdmin } from "@/lib/invite-admin";
-
-export type InviteAdminState = { error?: string; success?: string } | undefined;
+import { inviteAdminSchema, type InviteAdminInput } from "./schema";
 
 export async function inviteAdmin(
   campaignId: string,
   campaignSlug: string,
-  _prevState: InviteAdminState,
-  formData: FormData,
-): Promise<InviteAdminState> {
+  input: InviteAdminInput,
+) {
   await assertSuperadmin();
 
-  const email = String(formData.get("email") ?? "").trim();
-  if (!email) return { error: "Informe um email." };
+  const { email } = inviteAdminSchema.parse(input);
 
-  let emailSent = false;
-
-  try {
-    ({ emailSent } = await inviteCampaignAdmin(campaignId, email));
-  } catch (err) {
-    return { error: (err as Error).message };
-  }
+  const { emailSent } = await inviteCampaignAdmin(campaignId, email);
 
   revalidatePath(`/admin/${campaignSlug}`);
+
   return {
     success: emailSent
       ? `Convite enviado por email pra ${email}.`

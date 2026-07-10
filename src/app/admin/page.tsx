@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { verifySession, isSuperadmin, getCampaignsForUser } from "@/lib/admin";
-import { logout } from "./actions";
+import { logout } from "@/actions/logout";
 
 export default async function AdminHomePage() {
   const { supabase, user } = await verifySession();
