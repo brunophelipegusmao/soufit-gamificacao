@@ -4,6 +4,14 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/set-password"];
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Deploy de demonstração (Vercel project separado, DEMO_MODE=true): a área
+  // admin fica invisível — 404 mesmo para quem tem sessão válida.
+  if (process.env.DEMO_MODE === "true" && pathname.startsWith("/admin")) {
+    return NextResponse.rewrite(new URL("/404", request.url));
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -33,7 +41,6 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
   const isAdminRoute = pathname.startsWith("/admin");
   const isPublicAdminPath = PUBLIC_ADMIN_PATHS.some((p) =>
     pathname.startsWith(p),

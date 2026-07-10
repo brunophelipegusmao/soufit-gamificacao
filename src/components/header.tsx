@@ -18,7 +18,7 @@ const navigation = clsx(
 const navLinks = [
   { href: "/", label: "Serviços" },
   { href: "/about", label: "Como funciona" },
-  { href: "/contact", label: "Depoimentos" },
+  { href: "/pricing", label: "Preços" },
   { href: "/contact", label: "Contato" },
 ];
 
@@ -51,7 +51,7 @@ export function Header() {
           />
         </span>
         <span className="text-white font-extrabold text-xl">EVENTS</span>
-        <span className="text-white text-xl">FITNESS</span>
+        <span className="text-primary text-glow text-xl">FITNESS</span>
         </div>
         </Link>
 
