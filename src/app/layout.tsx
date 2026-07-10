@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Soufit Gamificação",
+  title: "Events Fitness",
   description: "Aplicativo de gamificação para eventos de fitness e bem-estar.",
 };
 
