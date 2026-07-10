@@ -44,7 +44,7 @@ export function HowWork() {
             key={number}
             className="relative gap-2 rounded-2xl border border-white/10 p-7"
           >
-            <span className="font-display font-black text-5xl text-primary/20">
+            <span className="font-display font-black text-5xl text-primary/60">
               {number}
             </span>
             <h3 className="font-display font-semibold text-lg mt-2 mb-2">

@@ -16,7 +16,7 @@ const navigation = clsx(
 );
 
 const navLinks = [
-  { href: "/", label: "Serviços" },
+  { href: "/services", label: "Serviços" },
   { href: "/about", label: "Como funciona" },
   { href: "/pricing", label: "Preços" },
   { href: "/contact", label: "Contato" },
