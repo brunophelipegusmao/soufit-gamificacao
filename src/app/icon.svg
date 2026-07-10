@@ -9,44 +9,7 @@
       <stop offset="0%" stop-color="#00C853" />
       <stop offset="100%" stop-color="#00C853" />
     </linearGradient>
-    <style>
-      .bolt {
-        animation: boltStrike 1s cubic-bezier(.16, 1, .3, 1) both infinite;
-        clip-path: inset(0 0 100% 0);
-        opacity: 0;
-        transform-box: fill-box;
-        transform-origin: 50% 0%;
-      }
-
-      @keyframes boltStrike {
-        0% {
-          clip-path: inset(0 0 100% 0);
-          opacity: 0;
-          transform: translateY(-18px) scaleY(.08);
-        }
-
-        20% {
-          clip-path: inset(0 0 0 0);
-          opacity: 1;
-          transform: translateY(0) scaleY(1.12);
-        }
-
-        32% {
-          opacity: .25;
-        }
-
-        44% {
-          opacity: 1;
-          transform: translateY(0) scaleY(.96);
-        }
-
-        60%, 100% {
-          clip-path: inset(0 0 0 0);
-          opacity: 1;
-          transform: translateY(0) scaleY(1);
-        }
-      }
-    </style>
+    
   </defs>
 
   <!-- Quadrado verde com cantos arredondados -->
@@ -61,7 +24,7 @@
 
   <!-- Raio preto -->
   <path
-    class="bolt"
+   
     d="M288 154
        L196 256
        C190 263 194 272 203 272
