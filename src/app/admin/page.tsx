@@ -6,9 +6,12 @@ import { logout } from "@/actions/logout";
 export default async function AdminHomePage() {
   const { supabase, user } = await verifySession();
   const superadmin = await isSuperadmin(supabase, user.id);
+
+  if (superadmin) redirect("/admin/new-campaign");
+
   const campaigns = await getCampaignsForUser();
 
-  if (!superadmin && campaigns.length === 1) {
+  if (campaigns.length === 1) {
     redirect(`/admin/${campaigns[0].slug}`);
   }
 
@@ -25,20 +28,9 @@ export default async function AdminHomePage() {
         </form>
       </div>
 
-      {superadmin && (
-        <Link
-          href="/admin/nova-campanha"
-          className="self-start rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          + Criar nova campanha
-        </Link>
-      )}
-
       {campaigns.length === 0 ? (
         <p className="text-zinc-600 dark:text-zinc-400">
-          {superadmin
-            ? "Nenhuma campanha criada ainda."
-            : "Você ainda não tem acesso a nenhuma campanha. Fale com quem te convidou."}
+          Você ainda não tem acesso a nenhuma campanha. Fale com quem te convidou.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
