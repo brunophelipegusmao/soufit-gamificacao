@@ -1,5 +1,5 @@
 import { verifySession, isSuperadmin } from "@/lib/admin";
-import { AppSidebar } from "@/components/admin/app-sidebar";
+import { AppSidebar } from "@/app/admin/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,

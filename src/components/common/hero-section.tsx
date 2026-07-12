@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-140 w-full overflow-hidden md:h-200">
+    <section className="relative min-h-140 w-full overflow-hidden md:flex-1">
       <video
         className="absolute inset-0 -z-10 h-full w-full object-cover"
         src="/hero.mp4"

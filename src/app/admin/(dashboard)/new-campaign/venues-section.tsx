@@ -13,7 +13,7 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListPagination } from "@/components/admin/list-pagination";
+import { ListPagination } from "@/app/admin/list-pagination";
 import type { CampaignFormValues } from "./campaign-form";
 
 const PAGE_SIZE = 5;

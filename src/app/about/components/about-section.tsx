@@ -1,4 +1,4 @@
-import { AboutServices } from "@/components/about-services";
+import { AboutServices } from "@/components/common/about-services";
 import { HowWork } from "./about-how-work";
 import { AboutBenefects } from "./about-benefects";
 

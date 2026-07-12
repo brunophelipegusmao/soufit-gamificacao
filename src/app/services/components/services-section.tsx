@@ -1,4 +1,4 @@
-import { AboutServices } from "@/components/about-services";
+import { AboutServices } from "@/components/common/about-services";
 import { ServicesXpModel } from "./services-xp-model";
 import { ServicesValidation } from "./services-validation";
 import { ServicesCta } from "./services-cta";
