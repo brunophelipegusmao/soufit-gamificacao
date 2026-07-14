@@ -106,6 +106,7 @@ export type CampaignAdminWithEmail = {
   id: string;
   user_id: string;
   created_at: string;
+  is_principal: boolean;
   email: string | null;
 };
 
@@ -115,7 +116,7 @@ export async function listCampaignAdmins(
 ): Promise<CampaignAdminWithEmail[]> {
   const { data, error } = await supabase
     .from("campaign_admins")
-    .select("id, user_id, created_at")
+    .select("id, user_id, created_at, is_principal")
     .eq("campaign_id", campaignId)
     .order("created_at", { ascending: true });
 
@@ -132,4 +133,86 @@ export async function listCampaignAdmins(
       return { ...row, email: userData.user?.email ?? null };
     }),
   );
+}
+
+type AdminSupabase = ReturnType<typeof getSupabaseAdmin>;
+
+export async function countCampaignAdmins(
+  supabase: ServerSupabase,
+  campaignId: string,
+): Promise<number> {
+  const { count, error } = await supabase
+    .from("campaign_admins")
+    .select("id", { count: "exact", head: true })
+    .eq("campaign_id", campaignId);
+
+  if (error) throw new Error(`Erro ao contar admins da campanha: ${error.message}`);
+
+  return count ?? 0;
+}
+
+export async function removeCampaignAdmin(
+  supabaseAdmin: AdminSupabase,
+  campaignId: string,
+  adminId: string,
+) {
+  const { data: target, error: targetError } = await supabaseAdmin
+    .from("campaign_admins")
+    .select("id, is_principal")
+    .eq("id", adminId)
+    .eq("campaign_id", campaignId)
+    .single();
+
+  if (targetError || !target) {
+    throw new Error(targetError?.message ?? "Admin não encontrado.");
+  }
+
+  const { error: deleteError } = await supabaseAdmin
+    .from("campaign_admins")
+    .delete()
+    .eq("id", adminId);
+
+  if (deleteError) throw new Error(deleteError.message);
+
+  if (!target.is_principal) return;
+
+  const { data: oldest, error: oldestError } = await supabaseAdmin
+    .from("campaign_admins")
+    .select("id")
+    .eq("campaign_id", campaignId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (oldestError) throw new Error(oldestError.message);
+  if (!oldest) return;
+
+  const { error: promoteError } = await supabaseAdmin
+    .from("campaign_admins")
+    .update({ is_principal: true })
+    .eq("id", oldest.id);
+
+  if (promoteError) throw new Error(promoteError.message);
+}
+
+export async function setPrincipalAdmin(
+  supabaseAdmin: AdminSupabase,
+  campaignId: string,
+  adminId: string,
+) {
+  const { error: unsetError } = await supabaseAdmin
+    .from("campaign_admins")
+    .update({ is_principal: false })
+    .eq("campaign_id", campaignId)
+    .eq("is_principal", true);
+
+  if (unsetError) throw new Error(unsetError.message);
+
+  const { error: setError } = await supabaseAdmin
+    .from("campaign_admins")
+    .update({ is_principal: true })
+    .eq("id", adminId)
+    .eq("campaign_id", campaignId);
+
+  if (setError) throw new Error(setError.message);
 }

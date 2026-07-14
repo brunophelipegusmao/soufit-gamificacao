@@ -19,11 +19,17 @@ export type Venue = {
 
 export type User = {
   id: string;
-  campaign_id: string;
-  venue_id: string;
   name: string;
   whatsapp: string;
   email: string | null;
+  created_at: string;
+};
+
+export type CampaignParticipant = {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  venue_id: string;
   lgpd_consent: boolean;
   created_at: string;
 };
@@ -81,5 +87,6 @@ export type CampaignAdmin = {
   id: string;
   campaign_id: string;
   user_id: string;
+  is_principal: boolean;
   created_at: string;
 };

@@ -1,5 +1,5 @@
 import { assertSuperadmin } from "@/lib/admin";
-import { CampaignForm } from "./campaign-form";
+import { CampaignForm } from "../components/campaign-form";
 
 export default async function NovaCampanhaPage() {
   await assertSuperadmin();

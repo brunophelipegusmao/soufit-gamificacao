@@ -11,7 +11,11 @@ async function getRedirectOrigin() {
   return `${proto}://${host}`;
 }
 
-export async function inviteCampaignAdmin(campaignId: string, email: string) {
+export async function inviteCampaignAdmin(
+  campaignId: string,
+  email: string,
+  isPrincipal = false,
+) {
   const supabaseAdmin = getSupabaseAdmin();
   const origin = await getRedirectOrigin();
   const redirectTo = `${origin}/admin/set-password`;
@@ -58,7 +62,7 @@ export async function inviteCampaignAdmin(campaignId: string, email: string) {
   const { error: insertError } = await supabaseAdmin
     .from("campaign_admins")
     .upsert(
-      { campaign_id: campaignId, user_id: userId },
+      { campaign_id: campaignId, user_id: userId, is_principal: isPrincipal },
       { onConflict: "campaign_id,user_id" },
     );
 

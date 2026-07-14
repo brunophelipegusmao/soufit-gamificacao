@@ -109,7 +109,7 @@ export async function createCampaign(input: CreateCampaignInput) {
 
   if (admin_email) {
     try {
-      await inviteCampaignAdmin(campaign.id, admin_email);
+      await inviteCampaignAdmin(campaign.id, admin_email, true);
     } catch (err) {
       throw new Error(
         `Campanha criada, mas o convite do admin falhou: ${

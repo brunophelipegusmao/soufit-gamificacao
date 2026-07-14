@@ -13,7 +13,7 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListPagination } from "@/app/admin/list-pagination";
+import { ListPagination } from "@/app/admin/(dashboard)/components/list-pagination";
 import type { CampaignFormValues } from "./campaign-form";
 
 const PAGE_SIZE = 5;
@@ -57,7 +57,12 @@ export function VenuesSection({
     <Card className={className}>
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle>Academias parceiras</CardTitle>
-        <Button type="button" variant="outline" size="sm" onClick={handleAppendVenue}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAppendVenue}
+        >
           <PlusIcon /> Adicionar academia
         </Button>
       </CardHeader>
@@ -80,8 +85,14 @@ export function VenuesSection({
           return (
             <div key={index}>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1fr_80px_auto]">
-                <Input placeholder="Nome" {...register(`venues.${index}.name`)} />
-                <Input placeholder="Cidade" {...register(`venues.${index}.city`)} />
+                <Input
+                  placeholder="Nome"
+                  {...register(`venues.${index}.name`)}
+                />
+                <Input
+                  placeholder="Cidade"
+                  {...register(`venues.${index}.city`)}
+                />
                 <Controller
                   control={control}
                   name={`venues.${index}.state`}
@@ -90,7 +101,9 @@ export function VenuesSection({
                       {...field}
                       placeholder="UF"
                       maxLength={2}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.toUpperCase())
+                      }
                     />
                   )}
                 />
@@ -114,7 +127,11 @@ export function VenuesSection({
           );
         })}
 
-        <ListPagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        <ListPagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </CardContent>
     </Card>
   );

@@ -23,6 +23,7 @@ GATE-1 multi-tenant:
   action: verificar se está escopada por campaign_id
   policy: toda entidade do banco DEVE ter campaign_id — sem exceção
   violation: dado sem campaign_id = bug de arquitetura, não de lógica
+  exceção: users e superadmins são identidade GLOBAL (sem campaign_id) — o escopo por campanha entra pela tabela de vínculo (campaign_participants, campaign_admins), não pela linha em si
 
 GATE-2 custo-zero:
   trigger: sugestão de serviço/infra
@@ -76,9 +77,9 @@ ROTEAMENTO:
   pattern: /admin/[campaign_slug] → painel admin
 
 BANCO:
-  tabelas: campaigns | venues | campaign_venues | users | missions | qr_codes | xp_logs
-  view: campaign_ranking (query de ranking por campaign_id)
-  rls: habilitado em users | xp_logs | missions | qr_codes
+  tabelas: campaigns | venues | campaign_venues | users | campaign_participants | missions | qr_codes | xp_logs | superadmins | campaign_admins
+  view: campaign_ranking (query de ranking por campaign_id, via campaign_participants)
+  rls: habilitado em users | xp_logs | missions | qr_codes | superadmins | campaign_admins | campaign_participants
   policy: ranking é leitura pública | escrita exige auth
 
 MODELO-XP:
@@ -113,6 +114,30 @@ CAMPANHA:
   identity: primary_color + logo_url por campanha → CSS variable --brand no frontend
 
 </rules>
+
+<roles label="tipos de usuário e regras de acesso">
+
+SUPERADMIN:
+  tabela: superadmins (user_id -> auth.users)
+  limite: 2 no máximo — trigger no banco (supabase/migrations/0005), não é só combinado
+  vínculo: nenhum — não pertence a campanha nenhuma, gerencia a plataforma inteira
+  pode: criar campanha | ver/gerenciar todas as campanhas | convidar, remover e trocar admin de qualquer campanha
+
+ADMIN-CAMPANHA:
+  tabela: campaign_admins (campaign_id, user_id, is_principal)
+  limite: 3 por campanha — trigger no banco (supabase/migrations/0006)
+  principal: exatamente 1 por campanha quando há admins — index único parcial (is_principal) + rebalanceamento na remoção fica na lógica da action, nunca no trigger
+  principal-trava: só superadmin pode trocar ou remover o admin principal — nenhum admin (nem o próprio principal) pode se autopromover/remover isso
+  multi-campanha: um mesmo admin pode estar em N campanhas — já é M:N por natureza da tabela
+  pode: gerenciar a(s) própria(s) campanha(s) (missões, academias, aprovações — conforme for implementado)
+
+PARTICIPANTE:
+  tabela: users (identidade global: id, name, whatsapp unique, email, created_at) + campaign_participants (campaign_id, user_id, venue_id, lgpd_consent — o que varia por campanha)
+  limite: nenhum
+  multi-campanha: um mesmo participante pode estar em N campanhas, incluindo campanhas diferentes de marcas/eventos diferentes
+  pode: cumprir missões, aparecer no ranking — escopado por campaign_id via campaign_participants, xp_logs e missions
+
+</roles>
 
 <engenharia label="convenções de código | aplica a todo código novo">
 
@@ -187,7 +212,8 @@ resend-key: RESEND_API_KEY (variável de ambiente — server only)
 /lib/campaigns.ts → getCampaignBySlug | getVenuesByCampaign
 /lib/xp.ts → creditXp | hasScannedToday | getRanking
 /lib/missions.ts → getMissionByQrToken | getMissionsByCampaign
-/types/index.ts → Campaign | Venue | User | Mission | XpLog | RankingEntry
+/types/index.ts → Campaign | Venue | User | CampaignParticipant | Mission | XpLog | RankingEntry | Superadmin | CampaignAdmin
+/lib/admin.ts → isSuperadmin | assertSuperadmin | getCampaignsForUser | assertCampaignAccess | listCampaignAdmins | countCampaignAdmins | removeCampaignAdmin | setPrincipalAdmin
 </ref>
 
 <decisions>

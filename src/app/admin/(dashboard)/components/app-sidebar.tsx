@@ -31,6 +31,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { logout } from "@/actions/logout";
+import Image from "next/image";
 
 const campaignNavPlaceholders = [
   { label: "Visão geral", icon: GaugeIcon },
@@ -39,8 +40,16 @@ const campaignNavPlaceholders = [
   { label: "QR Codes", icon: QrCodeIcon },
   { label: "Aprovações pendentes", icon: ClipboardCheckIcon },
   { label: "Ranking", icon: TrophyIcon },
-  { label: "Administradores", icon: UsersIcon },
 ];
+
+const RESERVED_ADMIN_SLUGS = ["login", "set-password", "new-campaign"];
+
+function getCampaignSlugFromPathname(pathname: string) {
+  const match = pathname.match(/^\/admin\/([^/]+)/);
+  const slug = match?.[1];
+  if (!slug || RESERVED_ADMIN_SLUGS.includes(slug)) return null;
+  return slug;
+}
 
 const reportsNavPlaceholders = [
   { label: "Engajamento", icon: BarChart3Icon },
@@ -55,14 +64,19 @@ export function AppSidebar({
   userEmail: string;
 }) {
   const pathname = usePathname();
+  const campaignSlug = getCampaignSlugFromPathname(pathname);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <ZapIcon size={16} />
-          </span>
+          <Image
+            src="logo.svg"
+            alt="logo Event Fitness"
+            width={35}
+            height={35}
+          />
+
           <span className="font-display font-extrabold text-sm tracking-tight group-data-[collapsible=icon]:hidden">
             EVENTS<span className="text-primary">FITNESS</span>
           </span>
@@ -80,7 +94,7 @@ export function AppSidebar({
                 tooltip="Dashboard"
               >
                 <LayoutDashboardIcon />
-                Dashboard
+                Início
               </SidebarMenuButton>
             </SidebarMenuItem>
             {superadmin && (
@@ -91,7 +105,7 @@ export function AppSidebar({
                   tooltip="Nova campanha"
                 >
                   <PlusCircleIcon />
-                  Nova campanha
+                  Nova Campanha
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
@@ -101,6 +115,22 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupLabel>Gestão de campanha</SidebarGroupLabel>
           <SidebarMenu>
+            {campaignSlug && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  render={
+                    <Link href={`/admin/${campaignSlug}/administradores`} />
+                  }
+                  isActive={
+                    pathname === `/admin/${campaignSlug}/administradores`
+                  }
+                  tooltip="Administradores"
+                >
+                  <UsersIcon />
+                  <span>Administradores</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             {campaignNavPlaceholders.map(({ label, icon: Icon }) => (
               <SidebarMenuItem key={label}>
                 <SidebarMenuButton
@@ -154,7 +184,11 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <form action={logout} className="w-full">
-              <SidebarMenuButton type="submit" tooltip="Sair" className="w-full">
+              <SidebarMenuButton
+                type="submit"
+                tooltip="Sair"
+                className="w-full"
+              >
                 <LogOutIcon />
                 Sair
               </SidebarMenuButton>
