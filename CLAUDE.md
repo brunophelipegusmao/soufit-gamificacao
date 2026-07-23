@@ -138,7 +138,14 @@ ADMIN-CAMPANHA:
   principal: exatamente 1 por campanha quando há admins — index único parcial (is_principal) + rebalanceamento na remoção fica na lógica da action, nunca no trigger
   principal-trava: só superadmin pode trocar ou remover o admin principal — nenhum admin (nem o próprio principal) pode se autopromover/remover isso
   multi-campanha: um mesmo admin pode estar em N campanhas — já é M:N por natureza da tabela
+  painel: próprio (/admin/[campaign_slug]), escopado só às campanhas com vínculo em campaign_admins — nunca vê campanha de outro admin/marca
   pode: gerenciar a(s) própria(s) campanha(s) (missões, academias, aprovações — conforme for implementado)
+  pode: editar campaign.event_starts_at / event_ends_at (data do evento)
+  pode: encerrar a própria campanha (campaign.active = false)
+  pode: solicitar extensão de contratação (cria pedido pendente — ver EXTENSÃO-CONTRATAÇÃO)
+  não-pode: criar campanha — exclusivo superadmin
+  não-pode: editar campaign.contract_starts_at / contract_ends_at (data de contratação) — exclusivo superadmin
+  não-pode: aprovar a própria solicitação de extensão
 
 PARTICIPANTE:
   tabela: users (identidade global: id, name, whatsapp unique, email, created_at) + campaign_participants (campaign_id, user_id, venue_id, lgpd_consent — o que varia por campanha)
