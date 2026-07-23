@@ -52,7 +52,6 @@ GATE-5 separação-backend:
   violation: client de infra, credencial ou lógica de acesso a dado fora de src/api/ = bug de arquitetura e risco de segurança (vazamento de credencial pro bundle client-side)
   exceção: Server Components em src/app/ podem importar src/api/data/* diretamente — padrão idiomático do App Router, não viola a separação
   exceção: src/app/api/**/route.ts e src/proxy.ts ficam na posição exigida pelo Next.js, mas são fachada fina — chamam src/api/, não implementam lógica ali
-  migração: estado atual (código de backend ainda espalhado em src/actions/ e src/lib/) documentado em MIGRACAO-BACKEND-API.md — gate vale para código novo a partir de agora, migração do legado é gradual
 
 </gates>
 
@@ -178,9 +177,24 @@ INPUT-MASCARADO:
   uso: telefone, CPF, valores monetários, qualquer input com máscara
 
 SERVER ACTIONS:
-  local: src/actions/
+  local: src/api/actions/
   estrutura: cada action em sua própria pasta com index.ts (lógica) + schema.ts (Zod schema)
-  naming: pasta nomeada pela ação (ex: src/actions/credit-xp/, src/actions/approve-mission-proof/)
+  naming: pasta nomeada pela ação (ex: src/api/actions/credit-xp/, src/api/actions/approve-mission-proof/)
+
+BACKEND:
+  local: src/api/ (clients/ | data/ | actions/) — única pasta com lógica de servidor, ver GATE-5
+  clients: src/api/clients/ — clients de infra (supabase-admin, supabase-server, supabase, resend)
+  data: src/api/data/ — acesso a dado / regra de negócio (admin, campaigns, missions, xp, invite-admin)
+  actions: src/api/actions/ — Server Actions (ver bloco SERVER ACTIONS acima)
+  policy: src/components/ e src/hooks/ nunca importam client de infra direto — só via src/api/
+  policy: Server Components em src/app/ podem importar src/api/data/* direto (padrão App Router)
+  policy: route handlers em src/app/api/**/route.ts são fachada fina — chamam src/api/, não implementam lógica ali
+  policy: client Supabase de browser (src/lib/supabase-browser.ts, createBrowserClient) fica fora de src/api/ — não é lógica de servidor
+
+DOCUMENTAÇÃO:
+  regra: antes de decisão técnica sobre biblioteca/framework (API, padrão recomendado, breaking change) consultar a doc atual via MCP Context7 — não confiar só em memória de treinamento
+  versão-de-referência: a instalada no projeto (package.json / pnpm-lock.yaml), não a mais recente do mercado
+  quando-pular: mudança puramente organizacional (mover arquivo, renomear) sem decisão de API envolvida
 
 nota: referências de arquivo (cart-item.tsx, user-cart.ts, sign-in-form.tsx etc.) de outro projeto foram descartadas — este projeto ainda não tem esses componentes; os padrões acima valem a partir do primeiro arquivo criado em cada categoria.
 
@@ -218,12 +232,17 @@ resend-key: RESEND_API_KEY (variável de ambiente — server only)
 </conn>
 
 <ref label="on-demand | read only">
-/lib/supabase.ts → client singleton
-/lib/campaigns.ts → getCampaignBySlug | getVenuesByCampaign
-/lib/xp.ts → creditXp | hasScannedToday | getRanking
-/lib/missions.ts → getMissionByQrToken | getMissionsByCampaign
+/api/clients/supabase.ts → client singleton (anon key, uso server-side em src/api/data/*)
+/api/clients/supabase-server.ts → createClient (SSR, cookies via next/headers, Server Components/Actions)
+/api/clients/supabase-admin.ts → getSupabaseAdmin (service role key)
+/api/clients/resend.ts → client Resend
+/lib/supabase-browser.ts → createClient (browser, createBrowserClient) — único client fora de src/api/, uso client-side
+/api/data/campaigns.ts → getCampaignBySlug | getVenuesByCampaign
+/api/data/xp.ts → creditXp | hasScannedToday | getRanking
+/api/data/missions.ts → getMissionByQrToken | getMissionsByCampaign
+/api/data/admin.ts → getAuthUser | isSuperadmin | assertSuperadmin | getCampaignsForUser | assertCampaignAccess | listCampaignAdmins | countCampaignAdmins | removeCampaignAdmin | setPrincipalAdmin
+/api/data/invite-admin.ts → inviteCampaignAdmin
 /types/index.ts → Campaign | Venue | User | CampaignParticipant | Mission | XpLog | RankingEntry | Superadmin | CampaignAdmin
-/lib/admin.ts → isSuperadmin | assertSuperadmin | getCampaignsForUser | assertCampaignAccess | listCampaignAdmins | countCampaignAdmins | removeCampaignAdmin | setPrincipalAdmin
 </ref>
 
 <decisions>
@@ -235,5 +254,5 @@ auto-declarado: descartado — risco de trapaça
 qr-code-físico: escolhido — automático, escalável, sem intervenção humana
 next-puro: confirmado — API Routes substituem NestJS sem perda funcional
 instagram-follow: verificação automática descartada — API do Meta bloqueada | solução: print + validação manual no painel admin
-backend-separado: adotado — src/api/ é a única pasta com lógica de servidor, ver GATE-5 | migração do código legado (src/actions/, src/lib/) é gradual, guiada por MIGRACAO-BACKEND-API.md
+backend-separado: adotado — src/api/ é a única pasta com lógica de servidor, ver GATE-5 | migração do código legado (antigo src/actions/, src/lib/) concluída e validada (build, lint, checagem de imports, teste manual de fluxo de auth)
 </decisions>
