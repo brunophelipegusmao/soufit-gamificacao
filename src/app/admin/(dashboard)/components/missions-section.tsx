@@ -33,7 +33,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { CreateCampaignInput } from "@/actions/create-campaign/schema";
+import type { CreateCampaignInput } from "@/api/actions/create-campaign/schema";
 import type { CampaignFormValues, MissionFormValue } from "./campaign-form";
 
 const PAGE_SIZE = 5;

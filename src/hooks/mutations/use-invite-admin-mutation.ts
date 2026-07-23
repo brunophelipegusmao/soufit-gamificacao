@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { inviteAdmin } from "@/actions/invite-admin";
-import type { InviteAdminInput } from "@/actions/invite-admin/schema";
+import { inviteAdmin } from "@/api/actions/invite-admin";
+import type { InviteAdminInput } from "@/api/actions/invite-admin/schema";
 
 export const inviteAdminMutationKey = ["invite-admin"] as const;
 

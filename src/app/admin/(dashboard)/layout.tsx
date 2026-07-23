@@ -1,4 +1,4 @@
-import { verifySession, isSuperadmin } from "@/lib/admin";
+import { verifySession, isSuperadmin } from "@/api/data/admin";
 import { AppSidebar } from "@/app/admin/(dashboard)/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {

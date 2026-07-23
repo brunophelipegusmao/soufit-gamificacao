@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase-server";
+import { createClient } from "@/api/clients/supabase-server";
 import { loginSchema, type LoginInput } from "./schema";
 
 export async function login(input: LoginInput) {

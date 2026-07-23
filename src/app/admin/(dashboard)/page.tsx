@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { verifySession, isSuperadmin, getCampaignsForUser } from "@/lib/admin";
+import { verifySession, isSuperadmin, getCampaignsForUser } from "@/api/data/admin";
 import { CampaignSection } from "@/app/admin/(dashboard)/components/campaign-section";
 
 export default async function AdminDashboardPage() {

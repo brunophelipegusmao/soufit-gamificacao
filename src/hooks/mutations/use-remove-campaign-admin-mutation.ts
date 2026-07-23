@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { removeAdmin } from "@/actions/remove-campaign-admin";
-import type { RemoveCampaignAdminInput } from "@/actions/remove-campaign-admin/schema";
+import { removeAdmin } from "@/api/actions/remove-campaign-admin";
+import type { RemoveCampaignAdminInput } from "@/api/actions/remove-campaign-admin/schema";
 
 export const removeCampaignAdminMutationKey = ["remove-campaign-admin"] as const;
 

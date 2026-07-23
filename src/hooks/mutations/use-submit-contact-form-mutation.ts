@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { submitContactForm } from "@/actions/submit-contact-form";
-import type { ContactFormInput } from "@/actions/submit-contact-form/schema";
+import { submitContactForm } from "@/api/actions/submit-contact-form";
+import type { ContactFormInput } from "@/api/actions/submit-contact-form/schema";
 
 export const submitContactFormMutationKey = ["submit-contact-form"] as const;
 

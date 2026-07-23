@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getAuthUser } from "@/api/data/admin";
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/set-password"];
 
@@ -36,10 +37,10 @@ export async function proxy(request: NextRequest) {
   );
 
   // Checagem otimista (só cookie/sessão) — autorização real (superadmin,
-  // acesso à campanha) fica na DAL em src/lib/admin.ts, perto do dado.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // acesso à campanha) fica na DAL em src/api/data/admin.ts, perto do dado.
+  // O client em si não dá pra compartilhar (Edge exige request.cookies),
+  // mas a query de sessão vem de lá via getAuthUser().
+  const user = await getAuthUser(supabase);
 
   const isAdminRoute = pathname.startsWith("/admin");
   const isPublicAdminPath = PUBLIC_ADMIN_PATHS.some((p) =>

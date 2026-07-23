@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useRemoveCampaignAdminMutation } from "@/hooks/mutations/use-remove-campaign-admin-mutation";
 import { useSetPrincipalAdminMutation } from "@/hooks/mutations/use-set-principal-admin-mutation";
-import type { CampaignAdminWithEmail } from "@/lib/admin";
+import type { CampaignAdminWithEmail } from "@/api/data/admin";
 
 export function CampaignAdminsList({
   admins,

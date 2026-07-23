@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { assertSuperadmin } from "@/lib/admin";
-import { inviteCampaignAdmin } from "@/lib/invite-admin";
+import { assertSuperadmin } from "@/api/data/admin";
+import { inviteCampaignAdmin } from "@/api/data/invite-admin";
 import { inviteAdminSchema, type InviteAdminInput } from "./schema";
 
 export async function inviteAdmin(

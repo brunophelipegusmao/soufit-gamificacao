@@ -1,6 +1,6 @@
 import "server-only";
 import { headers } from "next/headers";
-import { getSupabaseAdmin } from "./supabase-admin";
+import { getSupabaseAdmin } from "@/api/clients/supabase-admin";
 
 async function getRedirectOrigin() {
   const h = await headers();

@@ -1,6 +1,6 @@
 "use server";
 
-import { resend } from "@/lib/resend";
+import { resend } from "@/api/clients/resend";
 import {
   contactFormSchema,
   studentsRangeOptions,

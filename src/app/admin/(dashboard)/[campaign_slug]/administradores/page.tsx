@@ -1,4 +1,4 @@
-import { assertCampaignAccess, listCampaignAdmins } from "@/lib/admin";
+import { assertCampaignAccess, listCampaignAdmins } from "@/api/data/admin";
 import { CampaignAdminsList } from "@/app/admin/(dashboard)/components/campaign-admins-list";
 import { InviteAdminForm } from "../../components/invite-admin-form";
 

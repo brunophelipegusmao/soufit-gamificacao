@@ -13,7 +13,7 @@ import { useCreateCampaignMutation } from "@/hooks/mutations/use-create-campaign
 import {
   createCampaignSchema,
   type CreateCampaignInput,
-} from "@/actions/create-campaign/schema";
+} from "@/api/actions/create-campaign/schema";
 import { MissionsSection } from "./missions-section";
 import { VenuesSection } from "./venues-section";
 

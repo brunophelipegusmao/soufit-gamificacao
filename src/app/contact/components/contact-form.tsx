@@ -21,7 +21,7 @@ import {
   contactFormSchema,
   studentsRangeOptions,
   type ContactFormInput,
-} from "@/actions/submit-contact-form/schema";
+} from "@/api/actions/submit-contact-form/schema";
 
 export function ContactForm() {
   const {

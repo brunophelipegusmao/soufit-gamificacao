@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useLoginMutation } from "@/hooks/mutations/use-login-mutation";
-import { loginSchema, type LoginInput } from "@/actions/login/schema";
+import { loginSchema, type LoginInput } from "@/api/actions/login/schema";
 
 export function LoginForm() {
   const [remember, setRemember] = useState(false);

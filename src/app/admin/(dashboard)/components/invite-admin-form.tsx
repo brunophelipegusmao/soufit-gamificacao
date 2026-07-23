@@ -7,7 +7,7 @@ import { useInviteAdminMutation } from "@/hooks/mutations/use-invite-admin-mutat
 import {
   inviteAdminSchema,
   type InviteAdminInput,
-} from "@/actions/invite-admin/schema";
+} from "@/api/actions/invite-admin/schema";
 
 export function InviteAdminForm({
   campaignId,

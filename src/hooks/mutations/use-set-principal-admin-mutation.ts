@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { setPrincipal } from "@/actions/set-principal-admin";
-import type { SetPrincipalAdminInput } from "@/actions/set-principal-admin/schema";
+import { setPrincipal } from "@/api/actions/set-principal-admin";
+import type { SetPrincipalAdminInput } from "@/api/actions/set-principal-admin/schema";
 
 export const setPrincipalAdminMutationKey = ["set-principal-admin"] as const;
 

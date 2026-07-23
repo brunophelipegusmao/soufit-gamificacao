@@ -1,4 +1,4 @@
-import { assertCampaignAccess } from "@/lib/admin";
+import { assertCampaignAccess } from "@/api/data/admin";
 
 type Params = Promise<{ campaign_slug: string }>;
 

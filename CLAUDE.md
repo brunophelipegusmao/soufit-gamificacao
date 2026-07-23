@@ -44,6 +44,16 @@ GATE-4 validação-qr:
   policy: QR Code físico é o mecanismo de validação principal — automático, sem intervenção humana
   exception: missões do tipo 'manual' passam pelo painel admin | 'auto' não exige validação
 
+GATE-5 separação-backend:
+  trigger: qualquer código novo em src/
+  action: verificar se lógica de servidor (client de infra, service_role key, segredo de API) está isolada em src/api/
+  policy: backend SEMPRE separado do frontend — src/api/ (clients/ | data/ | actions/) é a única pasta com lógica de servidor
+  policy: src/components/ e src/hooks/ nunca importam client de infra (supabase-admin, resend) direto — só via src/api/
+  violation: client de infra, credencial ou lógica de acesso a dado fora de src/api/ = bug de arquitetura e risco de segurança (vazamento de credencial pro bundle client-side)
+  exceção: Server Components em src/app/ podem importar src/api/data/* diretamente — padrão idiomático do App Router, não viola a separação
+  exceção: src/app/api/**/route.ts e src/proxy.ts ficam na posição exigida pelo Next.js, mas são fachada fina — chamam src/api/, não implementam lógica ali
+  migração: estado atual (código de backend ainda espalhado em src/actions/ e src/lib/) documentado em MIGRACAO-BACKEND-API.md — gate vale para código novo a partir de agora, migração do legado é gradual
+
 </gates>
 
 <rules>
@@ -225,4 +235,5 @@ auto-declarado: descartado — risco de trapaça
 qr-code-físico: escolhido — automático, escalável, sem intervenção humana
 next-puro: confirmado — API Routes substituem NestJS sem perda funcional
 instagram-follow: verificação automática descartada — API do Meta bloqueada | solução: print + validação manual no painel admin
+backend-separado: adotado — src/api/ é a única pasta com lógica de servidor, ver GATE-5 | migração do código legado (src/actions/, src/lib/) é gradual, guiada por MIGRACAO-BACKEND-API.md
 </decisions>

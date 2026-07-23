@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { login } from "@/actions/login";
-import type { LoginInput } from "@/actions/login/schema";
+import { login } from "@/api/actions/login";
+import type { LoginInput } from "@/api/actions/login/schema";
 
 export const loginMutationKey = ["login"] as const;
 

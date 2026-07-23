@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { assertSuperadmin, setPrincipalAdmin } from "@/lib/admin";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { assertSuperadmin, setPrincipalAdmin } from "@/api/data/admin";
+import { getSupabaseAdmin } from "@/api/clients/supabase-admin";
 import {
   setPrincipalAdminSchema,
   type SetPrincipalAdminInput,

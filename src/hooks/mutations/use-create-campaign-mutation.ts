@@ -2,8 +2,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { createCampaign } from "@/actions/create-campaign";
-import type { CreateCampaignInput } from "@/actions/create-campaign/schema";
+import { createCampaign } from "@/api/actions/create-campaign";
+import type { CreateCampaignInput } from "@/api/actions/create-campaign/schema";
 
 export const createCampaignMutationKey = ["create-campaign"] as const;
 

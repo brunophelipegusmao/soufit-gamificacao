@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { assertSuperadmin, listCampaignAdmins, removeCampaignAdmin } from "@/lib/admin";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { assertSuperadmin, listCampaignAdmins, removeCampaignAdmin } from "@/api/data/admin";
+import { getSupabaseAdmin } from "@/api/clients/supabase-admin";
 import {
   removeCampaignAdminSchema,
   type RemoveCampaignAdminInput,

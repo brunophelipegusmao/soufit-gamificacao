@@ -1,5 +1,5 @@
 import "server-only";
-import { supabase } from "./supabase";
+import { supabase } from "@/api/clients/supabase";
 import type { Campaign, Venue } from "@/types";
 
 export async function getCampaignBySlug(

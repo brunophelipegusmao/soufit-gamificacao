@@ -1,16 +1,27 @@
 import "server-only";
 import { redirect, notFound } from "next/navigation";
-import { createClient } from "./supabase-server";
-import { getSupabaseAdmin } from "./supabase-admin";
+import { createClient } from "@/api/clients/supabase-server";
+import { getSupabaseAdmin } from "@/api/clients/supabase-admin";
 import type { Campaign } from "@/types";
 
 type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
 
-export async function getSessionUser() {
-  const supabase = await createClient();
+// Client injetado em vez de construído aqui dentro: src/proxy.ts roda em
+// Edge (middleware) e precisa de um client Supabase montado com
+// request.cookies, incompatível com o createClient() baseado em
+// next/headers usado no resto do app — mas a query de sessão em si
+// (auth.getUser()) é a mesma nos dois runtimes, então fica compartilhada
+// aqui em vez de duplicada.
+export async function getAuthUser(supabase: ServerSupabase) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  return user;
+}
+
+export async function getSessionUser() {
+  const supabase = await createClient();
+  const user = await getAuthUser(supabase);
   return { supabase, user };
 }
 

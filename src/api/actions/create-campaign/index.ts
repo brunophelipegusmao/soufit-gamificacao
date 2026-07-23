@@ -1,8 +1,8 @@
 "use server";
 
-import { assertSuperadmin } from "@/lib/admin";
-import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { inviteCampaignAdmin } from "@/lib/invite-admin";
+import { assertSuperadmin } from "@/api/data/admin";
+import { getSupabaseAdmin } from "@/api/clients/supabase-admin";
+import { inviteCampaignAdmin } from "@/api/data/invite-admin";
 import { createCampaignSchema, type CreateCampaignInput } from "./schema";
 
 export async function createCampaign(input: CreateCampaignInput) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCampaignBySlug } from "@/lib/campaigns";
+import { getCampaignBySlug } from "@/api/data/campaigns";
 
 type Params = Promise<{ campaign_slug: string }>;
 

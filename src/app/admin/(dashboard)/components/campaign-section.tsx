@@ -1,4 +1,4 @@
-import type { AdminCampaign } from "@/lib/admin";
+import type { AdminCampaign } from "@/api/data/admin";
 import { CampaignCard } from "./campaign-card";
 
 export function CampaignSection({

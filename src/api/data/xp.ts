@@ -1,5 +1,5 @@
 import "server-only";
-import { supabase } from "./supabase";
+import { supabase } from "@/api/clients/supabase";
 
 export async function creditXp({
   user_id,

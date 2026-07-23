@@ -30,7 +30,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { logout } from "@/actions/logout";
+import { logout } from "@/api/actions/logout";
 import Image from "next/image";
 
 const campaignNavPlaceholders = [
