@@ -17,8 +17,8 @@ export function CampaignCard({ campaign }: { campaign: AdminCampaign }) {
       </CardHeader>
       <CardContent className="flex items-center justify-between py-4 text-sm text-muted-foreground">
         <span>
-          {new Date(campaign.starts_at).toLocaleDateString("pt-BR")} –{" "}
-          {new Date(campaign.ends_at).toLocaleDateString("pt-BR")}
+          {new Date(campaign.contract_starts_at).toLocaleDateString("pt-BR")} –{" "}
+          {new Date(campaign.contract_ends_at).toLocaleDateString("pt-BR")}
         </span>
         <Link href={`/admin/${campaign.slug}`} className="text-primary hover:underline">
           Gerenciar →

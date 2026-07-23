@@ -24,8 +24,8 @@ export const createCampaignSchema = z.object({
     .string()
     .refine((v) => v === "" || z.url().safeParse(v).success, "URL de logo inválida."),
   primary_color: z.string(),
-  starts_at: z.string().min(1, "Data de início é obrigatória."),
-  ends_at: z.string().min(1, "Data de fim é obrigatória."),
+  contract_starts_at: z.string().min(1, "Data de início da contratação é obrigatória."),
+  contract_ends_at: z.string().min(1, "Data de fim da contratação é obrigatória."),
   active: z.boolean(),
   admin_email: z
     .string()

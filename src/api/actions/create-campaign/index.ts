@@ -14,8 +14,8 @@ export async function createCampaign(input: CreateCampaignInput) {
     brand_name,
     logo_url,
     primary_color,
-    starts_at,
-    ends_at,
+    contract_starts_at,
+    contract_ends_at,
     active,
     admin_email,
     venues,
@@ -32,8 +32,8 @@ export async function createCampaign(input: CreateCampaignInput) {
       brand_name,
       logo_url: logo_url || null,
       primary_color,
-      starts_at,
-      ends_at,
+      contract_starts_at,
+      contract_ends_at,
       active,
     })
     .select("id, slug")

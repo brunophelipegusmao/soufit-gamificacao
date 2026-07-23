@@ -5,9 +5,22 @@ export type Campaign = {
   brand_name: string;
   logo_url: string | null;
   primary_color: string;
-  starts_at: string;
-  ends_at: string;
+  contract_starts_at: string;
+  contract_ends_at: string;
+  event_starts_at: string | null;
+  event_ends_at: string | null;
   active: boolean;
+};
+
+export type CampaignExtensionRequest = {
+  id: string;
+  campaign_id: string;
+  requested_by: string;
+  requested_until: string;
+  status: "pending" | "approved" | "rejected";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
 };
 
 export type Venue = {

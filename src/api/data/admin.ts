@@ -25,6 +25,20 @@ export async function getSessionUser() {
   return { supabase, user };
 }
 
+// Timeout de inatividade (superadmin/campaign_admin — participante não usa
+// Supabase Auth, ver AUTENTICAÇÃO-PARTICIPANTE no CLAUDE.md). Pura por
+// design: só matemática de timestamp, sem I/O, então dá pra chamar de
+// src/proxy.ts sem duplicar a regra em Edge e no resto do app.
+export const ADMIN_INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+
+export function isAdminSessionExpired(lastActivityCookie: string | undefined) {
+  const lastActivityMs = lastActivityCookie ? Number(lastActivityCookie) : NaN;
+  return (
+    Number.isNaN(lastActivityMs) ||
+    Date.now() - lastActivityMs > ADMIN_INACTIVITY_LIMIT_MS
+  );
+}
+
 export async function verifySession() {
   const { supabase, user } = await getSessionUser();
   if (!user) redirect("/admin/login");

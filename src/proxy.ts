@@ -1,8 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getAuthUser } from "@/api/data/admin";
+import { getAuthUser, isAdminSessionExpired } from "@/api/data/admin";
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/set-password"];
+const ADMIN_ACTIVITY_COOKIE = "admin_last_activity";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -51,6 +52,32 @@ export async function proxy(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/admin/login";
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Timeout de inatividade de 15min (superadmin/campaign_admin) — sliding
+  // window: qualquer request autenticado nessa área renova o cookie. Não
+  // afeta o participante, que não passa por aqui (login próprio, sem
+  // Supabase Auth — ver AUTENTICAÇÃO-PARTICIPANTE no CLAUDE.md).
+  if (isAdminRoute && !isPublicAdminPath && user) {
+    const lastActivity = request.cookies.get(ADMIN_ACTIVITY_COOKIE)?.value;
+
+    if (isAdminSessionExpired(lastActivity)) {
+      await supabase.auth.signOut();
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      loginUrl.searchParams.set("expired", "1");
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+      redirectResponse.cookies.delete(ADMIN_ACTIVITY_COOKIE);
+      return redirectResponse;
+    }
+
+    response.cookies.set(ADMIN_ACTIVITY_COOKIE, String(Date.now()), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
   }
 
   return response;

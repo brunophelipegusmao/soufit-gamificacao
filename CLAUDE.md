@@ -121,6 +121,30 @@ CAMPANHA:
   nova-campanha: insert em campaigns + venues + campaign_venues + missions + qr_codes
   action: zero código novo por campanha — apenas configuração no banco
   identity: primary_color + logo_url por campanha → CSS variable --brand no frontend
+  datas: contract_starts_at/contract_ends_at (janela de disponibilização da plataforma, contratada — só superadmin edita, setada na criação) e event_starts_at/event_ends_at (datas do evento em si, null até o campaign_admin informar) | sem relação automática entre os dois pares | restrição: evento precisa caber dentro da janela contratada (check constraint campaigns_event_within_contract, migration 0008) — violação vira erro amigável na action update-campaign-event-dates, não erro cru do Postgres
+
+SESSÃO-ADMIN:
+  aplica-a: superadmin e campaign_admin (login via Supabase Auth) — não afeta participante, ver AUTENTICAÇÃO-PARTICIPANTE (sessão sem expiração curta por design, é outro mecanismo)
+  regra: logout automático após 15min de inatividade — sliding window, não expiração fixa (qualquer request autenticado em /admin/* renova o timer)
+  onde: src/proxy.ts (cookie leve admin_last_activity, lido/escrito a cada request) + src/api/data/admin.ts (isAdminSessionExpired — lógica pura, sem I/O, por isso compartilhável entre Edge e o resto do app; mesmo padrão do getAuthUser, ver GATE-5)
+  ao-expirar: supabase.auth.signOut() de verdade (revoga o refresh token, não só limpa cookie) + redirect pra /admin/login?expired=1
+  pendente-frontend: /admin/login ainda não lê ?expired=1 — falta mensagem tipo "sessão expirada por inatividade" na UI (login-form.tsx)
+
+AUTENTICAÇÃO-PARTICIPANTE:
+  identificador: whatsapp — sem senha, sem código de confirmação, sem Supabase Auth
+  fluxo: participante digita whatsapp (input mascarado) → existe? entra direto : pede nome + academia + lgpd_consent → em ambos os casos seta cookie assinado e vai pro dashboard
+  sessão: cookie assinado (HMAC com secret do servidor, contém user_id) — sem tabela de sessão, sem expiração curta
+  fluxo-nova-campanha-mesmo-user: cookie válido mas ainda não é campaign_participant dessa campanha → pede só venue + lgpd_consent, sem redigitar whatsapp
+  risco-aceito: quem souber o whatsapp de outra pessoa consegue ver o dashboard dela (nome, XP, missões) — aceito porque o dado é de baixa sensibilidade (gamificação, sem dado financeiro) e o público-alvo prioriza fricção zero
+  banned: OTP/código via WhatsApp para login de participante — avaliado e descartado, complica demais pro tipo de usuário (ver decisions)
+
+EXTENSÃO-CONTRATAÇÃO:
+  quem-solicita: campaign_admin da própria campanha
+  quem-aprova: superadmin (qualquer um dos até 2) — nunca o próprio solicitante
+  fluxo: campaign_admin solicita nova contract_ends_at → pedido fica pending → superadmin aprova (contract_ends_at é atualizado) ou rejeita
+  policy: no máximo 1 pedido pending por campanha por vez — evita solicitação duplicada empilhada
+  tabela: campaign_extension_requests (migration 0008) — campaign_id, requested_by, requested_until, status (pending/approved/rejected), reviewed_by, reviewed_at, created_at
+  actions: request-campaign-extension (campaign_admin, valida requested_until > contract_ends_at atual) | review-campaign-extension (superadmin, aprova atualiza contract_ends_at ou rejeita — sem transação, escrita sequencial, mesmo padrão de removeCampaignAdmin)
 
 </rules>
 
@@ -152,6 +176,7 @@ PARTICIPANTE:
   limite: nenhum
   multi-campanha: um mesmo participante pode estar em N campanhas, incluindo campanhas diferentes de marcas/eventos diferentes
   pode: cumprir missões, aparecer no ranking — escopado por campaign_id via campaign_participants, xp_logs e missions
+  login: sem Supabase Auth (users não tem linha em auth.users) — identificação só por WhatsApp, ver AUTENTICAÇÃO-PARTICIPANTE
 
 </roles>
 
@@ -236,6 +261,7 @@ scan-qr:
 supabase-url: NEXT_PUBLIC_SUPABASE_URL (variável de ambiente)
 supabase-key: NEXT_PUBLIC_SUPABASE_ANON_KEY (variável de ambiente)
 resend-key: RESEND_API_KEY (variável de ambiente — server only)
+participant-session-secret: PARTICIPANT_SESSION_SECRET (variável de ambiente — server only, HMAC do cookie de sessão do participante)
 </conn>
 
 <ref label="on-demand | read only">
@@ -249,7 +275,14 @@ resend-key: RESEND_API_KEY (variável de ambiente — server only)
 /api/data/missions.ts → getMissionByQrToken | getMissionsByCampaign
 /api/data/admin.ts → getAuthUser | isSuperadmin | assertSuperadmin | getCampaignsForUser | assertCampaignAccess | listCampaignAdmins | countCampaignAdmins | removeCampaignAdmin | setPrincipalAdmin
 /api/data/invite-admin.ts → inviteCampaignAdmin
-/types/index.ts → Campaign | Venue | User | CampaignParticipant | Mission | XpLog | RankingEntry | Superadmin | CampaignAdmin
+/api/data/participants.ts → normalizeWhatsapp | findUserByWhatsapp | findCampaignParticipant | joinCampaign | createParticipant
+/api/data/participant-session.ts → signParticipantSession | verifyParticipantSession
+/api/actions/update-campaign-event-dates → só event_starts_at/event_ends_at, nunca contract_*
+/api/actions/end-campaign → active=false
+/api/actions/request-campaign-extension → cria pedido pending, valida data
+/api/actions/review-campaign-extension → superadmin aprova/rejeita
+/api/actions/participant-login → login sem Supabase Auth, retorna needs_registration ou authenticated
+/types/index.ts → Campaign | Venue | User | CampaignParticipant | Mission | XpLog | RankingEntry | Superadmin | CampaignAdmin | CampaignExtensionRequest
 </ref>
 
 <decisions>
@@ -262,4 +295,5 @@ qr-code-físico: escolhido — automático, escalável, sem intervenção humana
 next-puro: confirmado — API Routes substituem NestJS sem perda funcional
 instagram-follow: verificação automática descartada — API do Meta bloqueada | solução: print + validação manual no painel admin
 backend-separado: adotado — src/api/ é a única pasta com lógica de servidor, ver GATE-5 | migração do código legado (antigo src/actions/, src/lib/) concluída e validada (build, lint, checagem de imports, teste manual de fluxo de auth)
+otp-participante: avaliado e descartado — código de confirmação via WhatsApp no login do participante complica demais pro tipo de usuário do produto | login fica só por whatsapp + cookie assinado, sem verificação de posse (ver AUTENTICAÇÃO-PARTICIPANTE e risco aceito documentado ali)
 </decisions>

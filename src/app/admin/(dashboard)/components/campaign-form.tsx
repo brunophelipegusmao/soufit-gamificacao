@@ -57,8 +57,8 @@ export function CampaignForm() {
       brand_name: "",
       logo_url: "",
       primary_color: "#00c853",
-      starts_at: "",
-      ends_at: "",
+      contract_starts_at: "",
+      contract_ends_at: "",
       active: true,
       admin_email: "",
       venues: [{ name: "", city: "", state: "" }],
@@ -154,12 +154,12 @@ export function CampaignForm() {
               )}
             />
 
-            <Field label="Início" htmlFor="starts_at" error={errors.starts_at?.message}>
-              <Input id="starts_at" type="date" {...register("starts_at")} />
+            <Field label="Início da contratação" htmlFor="contract_starts_at" error={errors.contract_starts_at?.message}>
+              <Input id="contract_starts_at" type="date" {...register("contract_starts_at")} />
             </Field>
 
-            <Field label="Fim" htmlFor="ends_at" error={errors.ends_at?.message}>
-              <Input id="ends_at" type="date" {...register("ends_at")} />
+            <Field label="Fim da contratação" htmlFor="contract_ends_at" error={errors.contract_ends_at?.message}>
+              <Input id="contract_ends_at" type="date" {...register("contract_ends_at")} />
             </Field>
           </CardContent>
         </Card>
